@@ -5,6 +5,8 @@ import { castVote } from "@/lib/actions/vote.actions";
 import { useRouter } from "next/navigation";
 import { CheckCircle2 } from "lucide-react";
 
+import ExportCsvButton from "@/components/polls/export-csv-button";
+
 export default function VotingClientUI({ poll, initialMyVote, userId }: { poll: any, initialMyVote: string[] | null, userId: string }) {
   const router = useRouter();
   const [selected, setSelected] = useState<string[]>(initialMyVote || []);
@@ -106,11 +108,14 @@ export default function VotingClientUI({ poll, initialMyVote, userId }: { poll: 
       </div>
 
       <div className="pt-6 border-t border-gray-100 flex justify-between items-center flex-wrap gap-4">
-        <div className="text-gray-500 text-sm">
+        <div className="text-gray-500 text-sm flex items-center gap-4">
           {!canSeeResults && !hasVoted ? (
             <span className="text-amber-600 font-medium">Vote to see results</span>
           ) : (
-            <>{totalVotes} total {totalVotes === 1 ? "vote" : "votes"} cast</>
+            <div className="flex items-center gap-3">
+              <span>{totalVotes} total {totalVotes === 1 ? "vote" : "votes"} cast</span>
+              <ExportCsvButton pollTitle={poll.title} options={poll.options} totalRespondents={totalVotes} />
+            </div>
           )}
           {hasVoted && <span className="ml-2 inline-flex items-center text-blue-600 font-medium"><CheckCircle2 size={16} className="mr-1"/> You have voted</span>}
         </div>

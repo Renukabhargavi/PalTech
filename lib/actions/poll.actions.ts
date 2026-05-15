@@ -28,7 +28,7 @@ export async function createPoll(data: any) {
 
   const shareToken = crypto.randomBytes(16).toString("base64url");
   
-  const pollData = {
+  const pollData: any = {
     title: data.title,
     description: data.description || null,
     type: data.type,
@@ -108,6 +108,26 @@ export async function closePoll(pollId: string) {
   
   await pollRef.update({
     status: "closed",
+    updatedAt: FieldValue.serverTimestamp()
+  });
+  
+  return { success: true };
+}
+
+export async function extendPoll(pollId: string, newEndAt: string) {
+  const userId = await getAuthUserId();
+  const pollRef = adminDb.collection("polls").doc(pollId);
+  const pollDoc = await pollRef.get();
+  
+  if (!pollDoc.exists) throw new Error("Poll not found");
+  if (pollDoc.data()?.creatorId !== userId) throw new Error("Forbidden");
+  if (pollDoc.data()?.status !== "open") throw new Error("Only open polls can be extended");
+  
+  const endAtDate = new Date(newEndAt);
+  if (endAtDate < new Date()) throw new Error("End time must be in the future");
+  
+  await pollRef.update({
+    endAt: endAtDate,
     updatedAt: FieldValue.serverTimestamp()
   });
   

@@ -1,13 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { publishPoll, closePoll, deleteDraft } from "@/lib/actions/poll.actions";
+import { publishPoll, closePoll, deleteDraft, extendPoll } from "@/lib/actions/poll.actions";
 import { useRouter } from "next/navigation";
 
 export default function PollManagementActions({ poll }: { poll: any }) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [newEndAt, setNewEndAt] = useState<string>("");
 
   const handleAction = async (action: () => Promise<any>, redirect?: string) => {
     if (confirm("Are you sure?")) {
@@ -55,13 +56,30 @@ export default function PollManagementActions({ poll }: { poll: any }) {
         )}
 
         {poll.status === "open" && (
-          <button 
-            onClick={() => handleAction(() => closePoll(poll.id))}
-            disabled={isLoading}
-            className="bg-red-600 text-white px-4 py-2 rounded-md font-medium hover:bg-red-700 disabled:opacity-50"
-          >
-            🛑 Close Polling
-          </button>
+          <div className="flex gap-4 items-center">
+            <button 
+              onClick={() => handleAction(() => closePoll(poll.id))}
+              disabled={isLoading}
+              className="bg-red-600 text-white px-4 py-2 rounded-md font-medium hover:bg-red-700 disabled:opacity-50"
+            >
+              🛑 Close Polling
+            </button>
+            <div className="flex bg-gray-50 border border-gray-200 rounded-md overflow-hidden p-1">
+              <input 
+                type="datetime-local" 
+                value={newEndAt} 
+                onChange={(e) => setNewEndAt(e.target.value)} 
+                className="px-2 py-1 outline-none bg-transparent"
+              />
+              <button 
+                onClick={() => handleAction(() => extendPoll(poll.id, newEndAt))}
+                disabled={isLoading || !newEndAt}
+                className="bg-white border text-sm font-medium px-3 rounded text-gray-700 hover:bg-gray-50"
+              >
+                Extend Time
+              </button>
+            </div>
+          </div>
         )}
 
         {(poll.status === "open" || poll.status === "closed") && (

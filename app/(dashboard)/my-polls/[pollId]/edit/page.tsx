@@ -44,60 +44,65 @@ export default async function PollManagementPage({ params }: { params: Promise<{
         <Link href="/my-polls">← Back to My Polls</Link>
       </div>
 
-      <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm relative">
-        <div className="flex justify-between items-start mb-6">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900 tracking-tight">{poll.title}</h1>
-            <p className="text-gray-500 mt-1">{poll.description || "No description provided."}</p>
-          </div>
-          <span className={`px-3 py-1 text-sm font-medium rounded-full ${
-            poll.status === 'draft' ? "bg-gray-100 text-gray-800" :
-            poll.status === 'open' ? "bg-green-100 text-green-800" :
-            "bg-red-100 text-red-800"
-          }`}>
-            {poll.status.toUpperCase()}
-          </span>
-        </div>
-
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-          <div className="p-4 bg-gray-50 rounded-lg border border-gray-100">
-            <p className="text-xs text-gray-500 uppercase tracking-wider font-semibold">Type</p>
-            <p className="font-medium text-gray-900 mt-1 capitalize">{poll.type}</p>
-          </div>
-          <div className="p-4 bg-gray-50 rounded-lg border border-gray-100">
-            <p className="text-xs text-gray-500 uppercase tracking-wider font-semibold">Visibility</p>
-            <p className="font-medium text-gray-900 mt-1 capitalize">{poll.visibility}</p>
-          </div>
-          <div className="p-4 bg-gray-50 rounded-lg border border-gray-100">
-            <p className="text-xs text-gray-500 uppercase tracking-wider font-semibold">Total Votes</p>
-            <p className="font-medium text-gray-900 mt-1">{poll.totalRespondents}</p>
-          </div>
-          <div className="p-4 bg-gray-50 rounded-lg border border-gray-100">
-            <p className="text-xs text-gray-500 uppercase tracking-wider font-semibold">Share Link</p>
-            <p className="font-mono text-xs text-blue-600 mt-1 truncate">/p/{poll.shareToken}</p>
-          </div>
-        </div>
-
-        <div className="border-t border-gray-200 pt-6">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">Poll Options</h3>
-          <div className="space-y-3">
-            {poll.options.sort((a: any, b: any) => a.order - b.order).map((opt: any) => (
-              <div key={opt.id} className="flex justify-between items-center p-3 rounded-md border border-gray-200">
-                <span className="font-medium text-gray-800">{opt.label}</span>
-                <span className="text-gray-500 font-medium">{opt.voteCount} votes</span>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className={poll.visibility === "private" ? "lg:col-span-2" : "lg:col-span-3"}>
+          <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm relative h-full">
+            <div className="flex justify-between items-start mb-6">
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900 tracking-tight">{poll.title}</h1>
+                <p className="text-gray-500 mt-1">{poll.description || "No description provided."}</p>
               </div>
-            ))}
+              <span className={`px-3 py-1 text-sm font-medium rounded-full ${
+                poll.status === 'draft' ? "bg-gray-100 text-gray-800" :
+                poll.status === 'open' ? "bg-green-100 text-green-800" :
+                "bg-red-100 text-red-800"
+              }`}>
+                {poll.status.toUpperCase()}
+              </span>
+            </div>
+
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+              <div className="p-4 bg-gray-50 rounded-lg border border-gray-100">
+                <p className="text-xs text-gray-500 uppercase tracking-wider font-semibold">Type</p>
+                <p className="font-medium text-gray-900 mt-1 capitalize">{poll.type}</p>
+              </div>
+              <div className="p-4 bg-gray-50 rounded-lg border border-gray-100">
+                <p className="text-xs text-gray-500 uppercase tracking-wider font-semibold">Visibility</p>
+                <p className="font-medium text-gray-900 mt-1 capitalize">{poll.visibility}</p>
+              </div>
+              <div className="p-4 bg-gray-50 rounded-lg border border-gray-100">
+                <p className="text-xs text-gray-500 uppercase tracking-wider font-semibold">Total Votes</p>
+                <p className="font-medium text-gray-900 mt-1">{poll.totalRespondents}</p>
+              </div>
+              <div className="p-4 bg-gray-50 rounded-lg border border-gray-100">
+                <p className="text-xs text-gray-500 uppercase tracking-wider font-semibold">Share Link</p>
+                <p className="font-mono text-xs text-blue-600 mt-1 truncate">/p/{poll.shareToken}</p>
+              </div>
+            </div>
+
+            <div className="border-t border-gray-200 pt-6">
+              <h3 className="text-lg font-medium text-gray-900 mb-4">Poll Options</h3>
+              <div className="space-y-3">
+                {poll.options.sort((a: any, b: any) => a.order - b.order).map((opt: any) => (
+                  <div key={opt.id} className="flex justify-between items-center p-3 rounded-md border border-gray-200">
+                    <span className="font-medium text-gray-800">{opt.label}</span>
+                    <span className="text-gray-500 font-medium">{opt.voteCount} votes</span>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
 
+        {poll.visibility === "private" && (
+          <div className="lg:col-span-1">
+            <InviteManager pollId={poll.id} existingInvites={invites} />
+          </div>
+        )}
       </div>
       
       {/* Interactive client component for mutation actions */}
       <PollManagementActions poll={poll} />
-      
-      {poll.visibility === "private" && (
-        <InviteManager pollId={poll.id} existingInvites={invites} />
-      )}
     </div>
   );
 }

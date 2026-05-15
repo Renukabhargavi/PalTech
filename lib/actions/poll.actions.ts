@@ -81,3 +81,34 @@ export async function deleteDraft(pollId: string) {
   await batch.commit();
   return { success: true };
 }
+export async function publishPoll(pollId: string) {
+  const userId = await getAuthUserId();
+  const pollRef = adminDb.collection("polls").doc(pollId);
+  const pollDoc = await pollRef.get();
+  
+  if (!pollDoc.exists) throw new Error("Poll not found");
+  if (pollDoc.data()?.creatorId !== userId) throw new Error("Forbidden");
+  
+  await pollRef.update({
+    status: "open",
+    updatedAt: FieldValue.serverTimestamp()
+  });
+  
+  return { success: true };
+}
+
+export async function closePoll(pollId: string) {
+  const userId = await getAuthUserId();
+  const pollRef = adminDb.collection("polls").doc(pollId);
+  const pollDoc = await pollRef.get();
+  
+  if (!pollDoc.exists) throw new Error("Poll not found");
+  if (pollDoc.data()?.creatorId !== userId) throw new Error("Forbidden");
+  
+  await pollRef.update({
+    status: "closed",
+    updatedAt: FieldValue.serverTimestamp()
+  });
+  
+  return { success: true };
+}

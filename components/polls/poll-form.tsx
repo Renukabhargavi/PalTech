@@ -1,0 +1,156 @@
+"use client";
+
+import { useState } from "react";
+import { useForm, useFieldArray } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { createPollSchema, CreatePollInput } from "@/lib/validators/poll.schema";
+import { createPoll } from "@/lib/actions/poll.actions";
+import { useRouter } from "next/navigation";
+import { Plus, Trash2 } from "lucide-react";
+
+export default function PollForm() {
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
+
+  const { register, control, handleSubmit, formState: { errors } } = useForm<CreatePollInput>({
+    resolver: zodResolver(createPollSchema),
+    defaultValues: {
+      type: "single",
+      visibility: "public",
+      resultsVisibility: "always",
+      options: [{ label: "" }, { label: "" }],
+    }
+  });
+
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: "options",
+  });
+
+  const onSubmit = async (data: CreatePollInput) => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const res = await createPoll(data);
+      if (res.success) {
+        // Redirect to detail page with an edit/draft view
+        router.push(`/my-polls/${res.pollId}/edit`);
+      }
+    } catch (e: any) {
+      setError(e.message || "Something went wrong.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+      {error && (
+        <div className="bg-red-50 text-red-600 p-3 rounded-md text-sm border border-red-200">
+          {error}
+        </div>
+      )}
+
+      <div>
+        <label className="block text-sm font-medium mb-1">Poll Title</label>
+        <input 
+          {...register("title")} 
+          className="w-full border rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none" 
+          placeholder="What is your favorite..."
+        />
+        {errors.title && <p className="text-red-500 text-xs mt-1">{errors.title.message}</p>}
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium mb-1">Description (Optional)</label>
+        <textarea 
+          {...register("description")} 
+          className="w-full border rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none h-20"
+          placeholder="Add more context..."
+        />
+        {errors.description && <p className="text-red-500 text-xs mt-1">{errors.description.message}</p>}
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <label className="block text-sm font-medium mb-1">Poll Type</label>
+          <select 
+            {...register("type")} 
+            className="w-full border rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+          >
+            <option value="single">Single Choice (Radio)</option>
+            <option value="multi">Multiple Choice (Checkboxes)</option>
+          </select>
+        </div>
+        
+        <div>
+          <label className="block text-sm font-medium mb-1">Visibility</label>
+          <select 
+            {...register("visibility")} 
+            className="w-full border rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+          >
+            <option value="public">Public (Anyone with link)</option>
+            <option value="private">Private (Invite only)</option>
+          </select>
+        </div>
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium mb-1">Results Visibility</label>
+        <select 
+          {...register("resultsVisibility")} 
+          className="w-full border rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+        >
+          <option value="always">Always show results after vote</option>
+          <option value="after_voting">Only show after poll is closed</option>
+        </select>
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium mb-2">Options</label>
+        {fields.map((field, index) => (
+          <div key={field.id} className="flex gap-2 mb-2 items-start">
+            <div className="flex-1">
+              <input
+                {...register(`options.${index}.label` as const)}
+                className="w-full border rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-gray-50"
+                placeholder={`Option ${index + 1}`}
+              />
+              {errors.options?.[index]?.label && (
+                <p className="text-red-500 text-xs mt-1">{errors.options[index]?.label?.message}</p>
+              )}
+            </div>
+            {fields.length > 2 && (
+              <button
+                type="button"
+                onClick={() => remove(index)}
+                className="p-2 text-red-500 hover:bg-red-50 border border-transparent rounded-md"
+              >
+                <Trash2 size={18} />
+              </button>
+            )}
+          </div>
+        ))}
+        {errors.options && !errors.options.root && (
+          <p className="text-red-500 text-xs mt-1">{errors.options.message}</p>
+        )}
+        <button
+          type="button"
+          onClick={() => append({ label: "" })}
+          className="mt-2 flex items-center text-sm text-blue-600 hover:text-blue-800 font-medium"
+        >
+          <Plus size={16} className="mr-1" /> Add Option
+        </button>
+      </div>
+
+      <button 
+        type="submit" 
+        disabled={isLoading}
+        className="w-full bg-blue-600 text-white py-2 rounded-md font-medium hover:bg-blue-700 transition disabled:opacity-50"
+      >
+        {isLoading ? "Creating Poll..." : "Create Poll Draft"}
+      </button>
+    </form>
+  );
+}

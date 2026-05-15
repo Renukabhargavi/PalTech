@@ -6,13 +6,15 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { signInSchema, SignInInput } from "@/lib/validators/auth.schema";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "@/lib/firebase/client";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { toast } from "sonner";
 
 export default function SignInForm() {
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectUrl = searchParams.get('redirect') || '/my-polls';
 
   const { register, handleSubmit, formState: { errors } } = useForm<SignInInput>({
     resolver: zodResolver(signInSchema),
@@ -33,7 +35,7 @@ export default function SignInForm() {
       if (!res.ok) throw new Error("Could not create session");
 
       toast.success("Signed in successfully!");
-      router.push("/my-polls");
+      router.push(redirectUrl);
       router.refresh();
     } catch (error: any) {
       toast.error(error.message || "Failed to sign in");
@@ -82,7 +84,7 @@ export default function SignInForm() {
 
       <div className="mt-6 text-center text-sm">
         <span className="text-gray-600 dark:text-gray-400">Don't have an account? </span>
-        <Link href="/sign-up" className="font-medium text-indigo-600 hover:text-indigo-500">
+        <Link href={`/sign-up${redirectUrl !== '/my-polls' ? `?redirect=${encodeURIComponent(redirectUrl)}` : ''}`} className="font-medium text-indigo-600 hover:text-indigo-500">
           Sign up
         </Link>
       </div>

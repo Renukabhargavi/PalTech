@@ -10,7 +10,9 @@ export function middleware(request: NextRequest) {
   
   // If there's no session and the user is trying to access a protected route
   if (!session && !isAuthRoute && !isRoot) {
-    return NextResponse.redirect(new URL('/sign-in', request.url));
+    const signInUrl = new URL('/sign-in', request.url);
+    signInUrl.searchParams.set('redirect', request.nextUrl.pathname);
+    return NextResponse.redirect(signInUrl);
   }
   
   // If there's a session and the user is on an auth route or root, redirect to dashboard

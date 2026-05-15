@@ -19,7 +19,8 @@ async function getPoll(pollId: string) {
   };
 }
 
-export default async function PollManagementPage({ params }: { params: { pollId: string } }) {
+export default async function PollManagementPage({ params }: { params: Promise<{ pollId: string }> }) {
+  const { pollId } = await params;
   let userId: string;
   try {
     userId = await getAuthUserId();
@@ -27,7 +28,7 @@ export default async function PollManagementPage({ params }: { params: { pollId:
     return <div>Unauthorized</div>;
   }
 
-  const poll: any = await getPoll(params.pollId);
+  const poll: any = await getPoll(pollId);
   
   if (!poll) notFound();
   if (poll.creatorId !== userId) return <div className="text-red-500">Forbidden - You did not create this poll.</div>;

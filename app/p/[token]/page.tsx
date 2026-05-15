@@ -1,8 +1,9 @@
 import { adminDb } from "@/lib/firebase/admin";
 import { redirect, notFound } from "next/navigation";
 
-export default async function ShareTokenResolver({ params }: { params: { token: string } }) {
-  const tokenDoc = await adminDb.collection("shareTokens").doc(params.token).get();
+export default async function ShareTokenResolver({ params }: { params: Promise<{ token: string }> }) {
+  const { token } = await params;
+  const tokenDoc = await adminDb.collection("shareTokens").doc(token).get();
   
   if (!tokenDoc.exists) {
     notFound();

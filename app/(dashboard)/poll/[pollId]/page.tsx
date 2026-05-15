@@ -48,8 +48,9 @@ async function getPollAndVote(pollId: string) {
   return { status: "ok", poll, myVote, userId };
 }
 
-export default async function PollDetailPage({ params }: { params: { pollId: string } }) {
-  const result: any = await getPollAndVote(params.pollId);
+export default async function PollDetailPage({ params }: { params: Promise<{ pollId: string }> }) {
+  const { pollId } = await params;
+  const result: any = await getPollAndVote(pollId);
   
   if (!result || result.status === "forbidden") {
     notFound(); // 404 or a Forbidden page

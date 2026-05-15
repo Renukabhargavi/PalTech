@@ -7,13 +7,15 @@ import { signUpSchema, SignUpInput } from "@/lib/validators/auth.schema";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { auth } from "@/lib/firebase/client";
 import { createUserDocument } from "@/lib/actions/auth.actions";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { toast } from "sonner";
 
 export default function SignUpForm() {
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectUrl = searchParams.get('redirect') || '/my-polls';
 
   const { register, handleSubmit, formState: { errors } } = useForm<SignUpInput>({
     resolver: zodResolver(signUpSchema),
@@ -38,7 +40,7 @@ export default function SignUpForm() {
       if (!res.ok) throw new Error("Could not create session");
 
       toast.success("Account created successfully!");
-      router.push("/my-polls");
+      router.push(redirectUrl);
       router.refresh();
     } catch (error: any) {
       toast.error(error.message || "Failed to create account");
@@ -98,7 +100,7 @@ export default function SignUpForm() {
 
       <div className="mt-6 text-center text-sm">
         <span className="text-gray-600 dark:text-gray-400">Already have an account? </span>
-        <Link href="/sign-in" className="font-medium text-indigo-600 hover:text-indigo-500">
+        <Link href={`/sign-in${redirectUrl !== '/my-polls' ? `?redirect=${encodeURIComponent(redirectUrl)}` : ''}`} className="font-medium text-indigo-600 hover:text-indigo-500">
           Sign in
         </Link>
       </div>

@@ -42,7 +42,7 @@ export async function createPoll(data: any) {
     createdAt: FieldValue.serverTimestamp(),
     updatedAt: FieldValue.serverTimestamp(),
     totalRespondents: 0,
-    inviteeIds: [], // Private visibility
+    allowedEmails: data.allowedEmails || [], // Users allowed if visibility is private
     options: data.options.map((opt: any, index: number) => ({
       id: crypto.randomBytes(8).toString("hex"),
       label: opt.label,

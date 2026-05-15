@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useForm, useFieldArray } from "react-hook-form";
+import { useForm, useFieldArray, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { createPollSchema, CreatePollInput } from "@/lib/validators/poll.schema";
 import { createPoll } from "@/lib/actions/poll.actions";
@@ -20,19 +20,32 @@ export default function PollForm() {
       visibility: "public",
       resultsVisibility: "always",
       options: [{ label: "" }, { label: "" }],
+      allowedEmails: [""],
     }
   });
+
+  const visibility = useWatch({ control, name: "visibility" });
 
   const { fields, append, remove } = useFieldArray({
     control,
     name: "options",
   });
 
+  const { fields: emailFields, append: appendEmail, remove: removeEmail } = useFieldArray({
+    control,
+    name: "allowedEmails" as never, // cast to bypass strict typing issue if any, or properly define
+  });
+
   const onSubmit = async (data: CreatePollInput) => {
     setIsLoading(true);
     setError(null);
     try {
-      const res = await createPoll(data);
+      // Filter out empty emails
+      const cleanData = {
+        ...data,
+        allowedEmails: data.visibility === 'private' ? data.allowedEmails?.filter((e: string) => e.trim() !== '') || [] : [],
+      };
+      const res = await createPoll(cleanData);
       if (res.success) {
         // Redirect to detail page with an edit/draft view
         router.push(`/my-polls/${res.pollId}/edit`);
@@ -95,6 +108,42 @@ export default function PollForm() {
           </select>
         </div>
       </div>
+
+      {visibility === "private" && (
+        <div className="bg-gray-50 p-4 rounded-md border border-gray-200">
+          <label className="block text-sm font-semibold text-gray-700 mb-2">Allowed Emails</label>
+          <p className="text-xs text-gray-500 mb-3">Only these emails will be able to access the poll. They must sign in.</p>
+          {emailFields.map((field, index) => (
+            <div key={field.id} className="flex gap-2 mb-2 items-start">
+              <div className="flex-1">
+                <input
+                  {...register(`allowedEmails.${index}` as const)}
+                  className="w-full border border-gray-300 rounded-md px-4 py-2 text-sm text-gray-900 focus:ring-2 focus:ring-blue-500 outline-none bg-white shadow-sm"
+                  placeholder="voter@example.com"
+                />
+                {/* @ts-ignore */}
+                {errors.allowedEmails?.[index] && (
+                  <p className="text-red-500 text-xs mt-1">Invalid email address</p>
+                )}
+              </div>
+              <button
+                type="button"
+                onClick={() => removeEmail(index)}
+                className="p-2 text-red-500 hover:bg-red-50 border border-transparent rounded-md"
+              >
+                <Trash2 size={18} />
+              </button>
+            </div>
+          ))}
+          <button
+            type="button"
+            onClick={() => appendEmail("")}
+            className="mt-2 flex items-center text-sm text-blue-600 hover:text-blue-800 font-medium"
+          >
+            <Plus size={16} className="mr-1" /> Add Email
+          </button>
+        </div>
+      )}
 
       <div>
         <label className="block text-sm font-semibold text-gray-700 mb-1">Results Visibility</label>

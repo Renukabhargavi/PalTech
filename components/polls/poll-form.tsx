@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm, useFieldArray, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { createPollSchema, CreatePollInput } from "@/lib/validators/poll.schema";
@@ -20,7 +20,7 @@ export default function PollForm() {
       visibility: "public",
       resultsVisibility: "always",
       options: [{ label: "" }, { label: "" }],
-      allowedEmails: [""],
+      allowedEmails: [],
     }
   });
 
@@ -36,6 +36,12 @@ export default function PollForm() {
     name: "allowedEmails" as never, // cast to bypass strict typing issue if any, or properly define
   });
 
+  useEffect(() => {
+    if (visibility === "private" && emailFields.length === 0) {
+      appendEmail("");
+    }
+  }, [appendEmail, emailFields.length, visibility]);
+
   const onSubmit = async (data: CreatePollInput) => {
     setIsLoading(true);
     setError(null);
@@ -43,7 +49,9 @@ export default function PollForm() {
       // Filter out empty emails
       const cleanData = {
         ...data,
-        allowedEmails: data.visibility === 'private' ? data.allowedEmails?.filter((e: string) => e.trim() !== '') || [] : [],
+        allowedEmails: data.visibility === "private"
+          ? data.allowedEmails?.map((e: string) => e.trim()).filter((e: string) => e !== "") || []
+          : [],
       };
       const res = await createPoll(cleanData);
       if (res.success) {

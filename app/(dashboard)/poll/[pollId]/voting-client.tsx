@@ -17,7 +17,7 @@ export default function VotingClientUI({ poll: initialPoll, initialMyVote, userI
   
   // Realtime state
   const [poll, setPoll] = useState(initialPoll);
-
+  const [currentVote, setCurrentVote] = useState<string[] | null>(initialMyVote);
   const [selected, setSelected] = useState<string[]>(initialMyVote || []);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -45,7 +45,7 @@ export default function VotingClientUI({ poll: initialPoll, initialMyVote, userI
   }, [initialPoll?.id]);
 
   const isClosed = poll.status === "closed";
-  const hasVoted = initialMyVote !== null;
+  const hasVoted = currentVote !== null;
   
   const canSeeResults = 
     isClosed || 
@@ -72,6 +72,7 @@ export default function VotingClientUI({ poll: initialPoll, initialMyVote, userI
     setError(null);
     try {
       await castVote(poll.id, selected);
+      setCurrentVote([...selected]);
       router.refresh(); 
     } catch (e: any) {
       setError(e.message || "Failed to vote");
@@ -107,7 +108,7 @@ export default function VotingClientUI({ poll: initialPoll, initialMyVote, userI
                   : "border-gray-200 hover:border-blue-300 hover:bg-gray-50 bg-white"
               } ${isClosed ? "cursor-default opacity-90 hover:border-gray-200 hover:bg-white" : ""}`}
             >
-              {canSeeResults && poll.type === "multiple" && (
+              {canSeeResults && poll.type === "multi" && (
                 <div 
                   className="absolute left-0 top-0 bottom-0 bg-blue-100 opacity-50 z-0 transition-all duration-1000 ease-out" 
                   style={{ width: `${percentage}%` }} 
@@ -171,7 +172,7 @@ export default function VotingClientUI({ poll: initialPoll, initialMyVote, userI
         </div>
       )}
 
-      {canSeeResults && poll.type === "multiple" && chartData.length > 0 && (
+      {canSeeResults && poll.type === "multi" && chartData.length > 0 && (
         <div className="mt-8 pt-8 border-t border-gray-100">
           <h3 className="text-lg font-medium text-gray-900 mb-4 text-center">Results Distribution</h3>
           <div className="w-full min-h-[300px]">
@@ -212,7 +213,7 @@ export default function VotingClientUI({ poll: initialPoll, initialMyVote, userI
         {!isClosed && (
           <button
             onClick={handleSubmit}
-            disabled={isSubmitting || selected.length === 0 || (hasVoted && [...(initialMyVote || [])].sort().join(',') === [...selected].sort().join(','))}
+            disabled={isSubmitting || selected.length === 0 || (hasVoted && [...(currentVote || [])].sort().join(',') === [...selected].sort().join(','))}
             className="bg-blue-600 text-white px-6 py-2.5 rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isSubmitting ? "Submitting..." : hasVoted ? "Update Vote" : "Cast Vote"}

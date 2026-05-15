@@ -10,7 +10,7 @@ export const createPollSchema = z.object({
   description: z.string().optional(),
   type: z.enum(["single", "multi"]),
   visibility: z.enum(["public", "private"]),
-  allowedEmails: z.array(z.string().email("Invalid email")).optional(),
+  allowedEmails: z.array(z.string().trim().email("Invalid email").or(z.literal(""))).optional(),
   resultsVisibility: z.enum(["always", "after_voting"]),
   options: z.array(pollOptionSchema).min(2, "At least two options are required"),
   endAt: z.string().optional(), // Will parse to Date on server

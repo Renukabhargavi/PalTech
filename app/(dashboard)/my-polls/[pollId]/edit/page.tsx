@@ -3,6 +3,8 @@ import { getAuthUserId } from "@/lib/actions/poll.actions";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import PollManagementActions from "./management-actions";
+import InviteManager from "./invite-manager";
+import { getInvites } from "@/lib/actions/invite.actions";
 
 async function getPoll(pollId: string) {
   const pollDoc = await adminDb.collection("polls").doc(pollId).get();
@@ -29,6 +31,11 @@ export default async function PollManagementPage({ params }: { params: { pollId:
   
   if (!poll) notFound();
   if (poll.creatorId !== userId) return <div className="text-red-500">Forbidden - You did not create this poll.</div>;
+
+  let invites: any[] = [];
+  if (poll.visibility === "private") {
+    invites = await getInvites(poll.id);
+  }
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
@@ -86,6 +93,10 @@ export default async function PollManagementPage({ params }: { params: { pollId:
       
       {/* Interactive client component for mutation actions */}
       <PollManagementActions poll={poll} />
+      
+      {poll.visibility === "private" && (
+        <InviteManager pollId={poll.id} existingInvites={invites} />
+      )}
     </div>
   );
 }

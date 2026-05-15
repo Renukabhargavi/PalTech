@@ -1,7 +1,5 @@
 import { adminDb } from "@/lib/firebase/admin";
 import { redirect, notFound } from "next/navigation";
-import { FieldValue } from "firebase-admin/firestore";
-import { getAuthUserId } from "@/lib/actions/poll.actions";
 
 export default async function ShareTokenResolver({ params }: { params: { token: string } }) {
   const tokenDoc = await adminDb.collection("shareTokens").doc(params.token).get();
@@ -12,21 +10,10 @@ export default async function ShareTokenResolver({ params }: { params: { token: 
 
   const { pollId } = tokenDoc.data()!;
   
-  // If the user is logged in, auto-add them to the inviteeIds to grant access for private polls
-  // via the secret link.
-  let userId: string | null = null;
-  try {
-    userId = await getAuthUserId();
-  } catch {
-    // Unauthenticated
-  }
-
-  if (userId) {
-    const pollRef = adminDb.collection("polls").doc(pollId);
-    await pollRef.update({
-      inviteeIds: FieldValue.arrayUnion(userId)
-    });
-  }
+  // NOTE: Business Requirement 4 explicitly states that knowing the URL alone
+  // does not grant access to a private poll. They must also be invited.
+  // Therefore, we just redirect them to the poll detail view, which will natively
+  // enforce the read-access rules (FR20/FR21).
   
   redirect(`/poll/${pollId}`);
 }

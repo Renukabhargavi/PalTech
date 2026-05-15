@@ -1,36 +1,43 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Pollaris - Online Polling Platform
 
-## Getting Started
+## Setup & Run Instructions
 
-First, run the development server:
+1. Clone the repository
+2. Run `npm install`
+3. Create a `.env.local` file matching `.env.example` with your Firebase configuration. You will need a Firebase project with Firestore and Firebase Authentication (Email/Password) enabled. Also provide the Firebase Admin SDK service account credentials.
+4. Run `npm run dev`
+5. Open `http://localhost:3000`
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## Tech Stack & Rationale
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+- **Framework**: Next.js 15 (App Router). Chosen for rapid prototyping, built-in API routes, and Server Actions which streamline data mutations and form processing.
+- **Styling**: Tailwind CSS & Lucide React. Chosen for utility-first styling and easy-to-grab icons without extensive custom CSS.
+- **Database & Storage**: Firebase Firestore (NoSQL). Chosen for real-time capabilities and flexible document storage.
+- **Authentication**: Firebase Authentication. Provides secure, out-of-the-box email/password registration and login. We use Firebase Admin SDK to handle server-side session cookies securely.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Architectural Overview
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- `app/(dashboard)`: Contains the authenticated views (Feed, My Polls, Shared With Me).
+- `app/poll/[pollId]`: The public/private viewer for a single poll.
+- `app/api/auth`: Next.js Route handlers for session cookie creation and deletion.
+- `lib/actions`: Server Actions containing the core business logic (poll creation, voting transactions, invitations).
+- `lib/firebase`: Firebase client and admin initialization.
 
-## Learn More
+## How AI Tools Were Used
 
-To learn more about Next.js, take a look at the following resources:
+GitHub Copilot and Gemini 3.1 Pro were used heavily to accelerate scaffolding. The AI generated the bulk of the initial UI components, Server Actions, and Firestore schema definitions. Most code was AI-generated but reviewed and tweaked to ensure proper handling of Next.js 15 async API updates and Firestore transaction safety.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Assumptions
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- Read/Write performance on Firebase is acceptable for the Hackathon scope without extensive caching.
+- Sorting on the frontend (in memory) is acceptable instead of forcing the user to create complex Firestore composite indexes during local setup.
 
-## Deploy on Vercel
+## Trade-offs
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- Complex composite indexing in Firestore was skipped to avoid complex local setup overhead. Instead, we pull a subset of recent records and sort them in JavaScript (e.g. `Array.sort()`).
+- Pagination was implemented minimally. For production, cursor-based pagination via Firestore would be robust.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Future Work
+
+- Fully implement Firestore cursor-based pagination for large datasets.
+- Implement more robust caching using Next.js `unstable_cache`.

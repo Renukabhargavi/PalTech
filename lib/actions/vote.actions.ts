@@ -78,3 +78,39 @@ export async function castVote(pollId: string, selectedOptionIds: string[]) {
 
   return { success: true };
 }
+
+export async function withdrawVote(pollId: string) {
+  const userId = await getAuthUserId();
+  
+  const pollRef = adminDb.collection("polls").doc(pollId);
+  const voteRef = pollRef.collection("votes").doc(userId);
+
+  await adminDb.runTransaction(async (transaction) => {
+    const pollDoc = await transaction.get(pollRef);
+    if (!pollDoc.exists) throw new Error("Poll not found");
+    const poll = pollDoc.data()!;
+    if (poll.status !== "open") throw new Error("Poll is closed or not published yet");
+
+    const voteDoc = await transaction.get(voteRef);
+    if (!voteDoc.exists) throw new Error("You have not voted");
+
+    const previousVote = voteDoc.data()!;
+    const prevIds: string[] = previousVote.selectedOptionIds;
+
+    let currentOptions = [...poll.options];
+    for (const oldId of prevIds) {
+      const idx = currentOptions.findIndex(o => o.id === oldId);
+      if (idx !== -1) currentOptions[idx].voteCount = Math.max(0, currentOptions[idx].voteCount - 1);
+    }
+
+    transaction.delete(voteRef);
+
+    transaction.update(pollRef, {
+      options: currentOptions,
+      totalRespondents: Math.max(0, poll.totalRespondents - 1),
+      updatedAt: FieldValue.serverTimestamp()
+    });
+  });
+
+  return { success: true };
+}

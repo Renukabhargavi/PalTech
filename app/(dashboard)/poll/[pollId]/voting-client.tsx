@@ -13,9 +13,14 @@ export default function VotingClientUI({ poll, initialMyVote, userId }: { poll: 
 
   const isClosed = poll.status === "closed";
   const hasVoted = initialMyVote !== null;
+  
+  // FR34: "Always visible" -> anyone can see. 
+  // FR35: "Visible after voting" -> only viewers who voted (or creator) can see while open.
+  // FR36: Once Closed, results are visible to all viewers.
   const canSeeResults = 
-    (hasVoted && poll.resultsVisibility === "always") || 
     isClosed || 
+    poll.resultsVisibility === "always" ||
+    (poll.resultsVisibility === "after_voting" && hasVoted) ||
     poll.creatorId === userId;
 
   const totalVotes = poll.totalRespondents;
@@ -102,7 +107,11 @@ export default function VotingClientUI({ poll, initialMyVote, userId }: { poll: 
 
       <div className="pt-6 border-t border-gray-100 flex justify-between items-center flex-wrap gap-4">
         <div className="text-gray-500 text-sm">
-          {totalVotes} total {totalVotes === 1 ? "vote" : "votes"} cast
+          {!canSeeResults && !hasVoted ? (
+            <span className="text-amber-600 font-medium">Vote to see results</span>
+          ) : (
+            <>{totalVotes} total {totalVotes === 1 ? "vote" : "votes"} cast</>
+          )}
           {hasVoted && <span className="ml-2 inline-flex items-center text-blue-600 font-medium"><CheckCircle2 size={16} className="mr-1"/> You have voted</span>}
         </div>
 

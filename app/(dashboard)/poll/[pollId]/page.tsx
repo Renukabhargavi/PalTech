@@ -16,6 +16,13 @@ async function getPollAndVote(pollId: string) {
   
   const pollData = pollDoc.data()!;
   
+  // Auto-close check (FR14)
+  if (pollData.status === "open" && pollData.endAt && pollData.endAt.toDate() < new Date()) {
+    pollData.status = "closed";
+    // Fire and forget
+    adminDb.collection("polls").doc(pollId).update({ status: "closed" }).catch(() => {});
+  }
+
   // Access check
   if (pollData.visibility === "private" && userId !== pollData.creatorId && !pollData.inviteeIds?.includes(userId)) {
     // If not creator and not invited, deny.

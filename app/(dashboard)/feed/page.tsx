@@ -3,7 +3,9 @@ import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
 import { Users, Clock, Vote } from "lucide-react";
 
-async function getPublicFeed() {
+async function getPublicFeed(page: number) {
+  const pageSize = 20;
+  
   const snapshot = await adminDb
     .collection("polls")
     .where("visibility", "==", "public")
@@ -22,19 +24,28 @@ async function getPublicFeed() {
     };
   });
 
-  // Sort in memory to bypass Firestore Composite Index requirement
-  return polls
-    .sort((a, b) => (b.createdAt?.getTime() || 0) - (a.createdAt?.getTime() || 0))
-    .slice(0, 20);
+  // Sort in memory and paginate based on ?page= URL param
+  const sorted = polls.sort((a, b) => (b.createdAt?.getTime() || 0) - (a.createdAt?.getTime() || 0));
+  const totalItems = sorted.length;
+  const paginated = sorted.slice((page - 1) * pageSize, page * pageSize);
+  
+  return {
+    polls: paginated,
+    totalPages: Math.ceil(totalItems / pageSize),
+    currentPage: page
+  };
 }
 
-export default async function FeedPage() {
-  let polls;
+export default async function FeedPage({ searchParams }: { searchParams: { page?: string } }) {
+  const page = parseInt(searchParams.page || "1", 10) || 1;
+  let data;
   try {
-    polls = await getPublicFeed();
+    data = await getPublicFeed(page);
   } catch (error) {
     return <div>Error loading feed. We are looking into it!</div>;
   }
+
+  const { polls, totalPages, currentPage } = data;
 
   return (
     <div className="space-y-6">
@@ -81,6 +92,24 @@ export default async function FeedPage() {
               </div>
             </Link>
           ))}
+        </div>
+      )}
+      
+      {totalPages > 1 && (
+        <div className="flex justify-center items-center space-x-4 pt-4">
+          <Link 
+            href={`/feed?page=${Math.max(1, currentPage - 1)}`}
+            className={`px-4 py-2 border rounded-md text-sm font-medium ${currentPage === 1 ? 'pointer-events-none opacity-50 bg-gray-50 text-gray-400' : 'bg-white text-gray-700 hover:bg-gray-50'}`}
+          >
+            Previous
+          </Link>
+          <span className="text-sm text-gray-600">Page {currentPage} of {totalPages}</span>
+          <Link 
+            href={`/feed?page=${Math.min(totalPages, currentPage + 1)}`}
+            className={`px-4 py-2 border rounded-md text-sm font-medium ${currentPage === totalPages ? 'pointer-events-none opacity-50 bg-gray-50 text-gray-400' : 'bg-white text-gray-700 hover:bg-gray-50'}`}
+          >
+            Next
+          </Link>
         </div>
       )}
     </div>

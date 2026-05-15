@@ -24,7 +24,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       <header className="bg-white dark:bg-gray-800 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <div className="flex items-center gap-6">
-            <h1 className="text-xl font-bold text-indigo-600 dark:text-indigo-400">Consensus</h1>
+            <h1 className="text-xl font-bold tracking-tight text-blue-600 dark:text-blue-400">Pollaris</h1>
             <nav className="hidden md:flex gap-4">
                <Link href="/feed" className="text-sm font-medium text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white">Public Feed</Link>
                <Link href="/my-polls" className="text-sm font-medium text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white">My Polls</Link>

@@ -8,7 +8,8 @@ import { adminAuth } from "@/lib/firebase/admin";
 
 // Utility to get authenticated user ID from session cookie securely
 export async function getAuthUserId() {
-  const session = cookies().get("session")?.value;
+  const cookieStore = await cookies();
+  const session = cookieStore.get("session")?.value;
   if (!session) throw new Error("Unauthorized");
   try {
     const decodedTicket = await adminAuth.verifySessionCookie(session);

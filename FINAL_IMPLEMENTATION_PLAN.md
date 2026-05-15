@@ -1,4 +1,4 @@
-# 🗳️ PollForge — Final Implementation Plan
+# 🗳️ Pollaris — Final Implementation Plan
 
 > **Stack: Next.js 14 App Router + Firebase Auth + Firestore + Tailwind CSS**
 > **Time: 6 hours | Firebase is King 👑**
@@ -441,7 +441,7 @@ export async function checkPollAccess(userId: string, poll: PollData): Promise<b
 | Optimistic UI | `useTransition` + `revalidatePath` |
 | Toasts | Sonner library |
 | URL state | `searchParams` for filters/sort/page |
-# PollForge — Implementation Plan Part 2: Execution
+# Pollaris — Implementation Plan Part 2: Execution
 
 ## 8. 6-HOUR ROADMAP
 
@@ -749,7 +749,7 @@ docs: comprehensive README
 ## 11. README TEMPLATE
 
 ```markdown
-# PollForge — Online Polling Platform
+# Pollaris — Online Polling Platform
 
 ## Setup & Run Instructions
 
@@ -843,7 +843,7 @@ Read operations use Server Components with Admin SDK for access-controlled data.
 ## 12. DEMO SCRIPT (5 min)
 
 **Elevator Pitch (30s):**
-> "PollForge is a polling platform where authenticated users create single or multi-choice polls with full lifecycle management. It enforces strict access control — private polls are invisible even with the URL — and guarantees one-vote-per-user at the database level. Built with Next.js and Firebase in 6 hours."
+> "Pollaris is a polling platform where authenticated users create single or multi-choice polls with full lifecycle management. It enforces strict access control — private polls are invisible even with the URL — and guarantees one-vote-per-user at the database level. Built with Next.js and Firebase in 6 hours."
 
 **Act 1 — Auth (1 min):** Register Alice + Bob. Show Firebase Console → Password Hash Parameters → scrypt verified.
 

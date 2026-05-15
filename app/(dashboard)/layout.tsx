@@ -12,7 +12,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     try {
       await fetch("/api/auth/session", { method: "DELETE" });
       toast.success("Signed out successfully");
-      router.push("/sign-in");
+      router.push("/");
       router.refresh();
     } catch (e) {
       toast.error("Error signing out");

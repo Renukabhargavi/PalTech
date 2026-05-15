@@ -46,26 +46,26 @@ export default function SignInForm() {
   };
 
   return (
-    <div className="bg-white dark:bg-gray-800 py-8 px-4 shadow sm:rounded-lg sm:px-10">
+    <div className="bg-transparent pt-2">
       <form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Email address</label>
+          <label className="block text-sm font-medium text-slate-700">Email address</label>
           <div className="mt-1">
             <input
               {...register("email")}
-              className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+              className="appearance-none block w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm placeholder-slate-400 focus:outline-none focus:ring-blue-700 focus:border-blue-700 sm:text-sm text-slate-900 bg-white"
             />
             {errors.email && <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>}
           </div>
         </div>
 
         <div>
-           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Password</label>
+           <label className="block text-sm font-medium text-slate-700">Password</label>
           <div className="mt-1">
             <input
               type="password"
               {...register("password")}
-              className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+              className="appearance-none block w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm placeholder-slate-400 focus:outline-none focus:ring-blue-700 focus:border-blue-700 sm:text-sm text-slate-900 bg-white"
             />
             {errors.password && <p className="mt-1 text-sm text-red-600">{errors.password.message}</p>}
           </div>
@@ -75,16 +75,16 @@ export default function SignInForm() {
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+            className="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-bold text-white bg-blue-700 hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-700 disabled:opacity-50 transition-colors"
           >
-            {isLoading ? "Signing in..." : "Sign in"}
+            {isLoading ? "Signing in..." : "Sign In"}
           </button>
         </div>
       </form>
 
       <div className="mt-6 text-center text-sm">
-        <span className="text-gray-600 dark:text-gray-400">Don't have an account? </span>
-        <Link href={`/sign-up${redirectUrl !== '/my-polls' ? `?redirect=${encodeURIComponent(redirectUrl)}` : ''}`} className="font-medium text-indigo-600 hover:text-indigo-500">
+        <span className="text-slate-600">Don't have an account? </span>
+        <Link href={`/sign-up${redirectUrl !== '/my-polls' ? `?redirect=${encodeURIComponent(redirectUrl)}` : ''}`} className="font-bold text-blue-700 hover:text-blue-800">
           Sign up
         </Link>
       </div>

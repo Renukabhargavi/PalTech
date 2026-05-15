@@ -1,12 +1,17 @@
-import { adminDb } from "@/lib/firebase/admin";
+import { adminDb, adminAuth } from "@/lib/firebase/admin";
 import { getAuthUserId } from "@/lib/actions/poll.actions";
 import { notFound } from "next/navigation";
 import VotingClientUI from "./voting-client";
 
 async function getPollAndVote(pollId: string) {
   let userId: string | null = null;
+  let userEmail: string | null = null;
   try {
     userId = await getAuthUserId();
+    if (userId) {
+      const userRecord = await adminAuth.getUser(userId);
+      userEmail = userRecord.email || null;
+    }
   } catch {
     // Unauthenticated request
   }
@@ -24,13 +29,18 @@ async function getPollAndVote(pollId: string) {
   }
 
   // Access check
-  if (pollData.visibility === "private" && userId !== pollData.creatorId && !pollData.inviteeIds?.includes(userId)) {
-    // If not creator and not invited, deny.
+  if (pollData.visibility === "private" && userId !== pollData.creatorId && (!userEmail || !pollData.allowedEmails?.includes(userEmail))) {
+    // If not creator and not invited (by email), deny.
+    return { status: "forbidden" };
+  }
+
+  // Ensure draft polls are visible ONLY to their creator
+  if (pollData.status === "draft" && userId !== pollData.creatorId) {
     return { status: "forbidden" };
   }
 
   // Strip sensitive PII before sending to the client (Fixes FR31/PII Leak)
-  const { inviteeIds, ...safePollData } = pollData;
+  const { allowedEmails, ...safePollData } = pollData;
 
   const poll = {
     id: pollDoc.id,

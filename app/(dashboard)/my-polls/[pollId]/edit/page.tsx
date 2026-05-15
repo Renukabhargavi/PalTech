@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import PollManagementActions from "./management-actions";
 import InviteManager from "./invite-manager";
+import ShareLink from "@/components/polls/share-link";
 import { getInvites } from "@/lib/actions/invite.actions";
 
 async function getPoll(pollId: string) {
@@ -74,10 +75,7 @@ export default async function PollManagementPage({ params }: { params: Promise<{
                 <p className="text-xs text-gray-500 uppercase tracking-wider font-semibold">Total Votes</p>
                 <p className="font-medium text-gray-900 mt-1">{poll.totalRespondents}</p>
               </div>
-              <div className="p-4 bg-gray-50 rounded-lg border border-gray-100">
-                <p className="text-xs text-gray-500 uppercase tracking-wider font-semibold">Share Link</p>
-                <p className="font-mono text-xs text-blue-600 mt-1 truncate">/p/{poll.shareToken}</p>
-              </div>
+              <ShareLink shareToken={poll.shareToken} />
             </div>
 
             <div className="border-t border-gray-200 pt-6">

@@ -10,9 +10,12 @@ import { createUserDocument } from "@/lib/actions/auth.actions";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { toast } from "sonner";
+import { Eye, EyeOff } from "lucide-react";
 
 export default function SignUpForm() {
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirectUrl = searchParams.get('redirect') || '/my-polls';
@@ -77,13 +80,39 @@ export default function SignUpForm() {
 
         <div>
            <label className="block text-sm font-medium text-slate-700">Password</label>
-          <div className="mt-1">
+          <div className="mt-1 relative">
             <input
-              type="password"
+              type={showPassword ? "text" : "password"}
               {...register("password")}
-              className="appearance-none block w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm placeholder-slate-400 focus:outline-none focus:ring-blue-700 focus:border-blue-700 sm:text-sm text-slate-900 bg-white"
+              className="appearance-none block w-full px-3 py-2 pr-10 border border-slate-300 rounded-md shadow-sm placeholder-slate-400 focus:outline-none focus:ring-blue-700 focus:border-blue-700 sm:text-sm text-slate-900 bg-white"
             />
+            <button
+              type="button"
+              className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600"
+              onClick={() => setShowPassword(!showPassword)}
+            >
+              {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+            </button>
             {errors.password && <p className="mt-1 text-sm text-red-600">{errors.password.message}</p>}
+          </div>
+        </div>
+
+        <div>
+           <label className="block text-sm font-medium text-slate-700">Confirm Password</label>
+          <div className="mt-1 relative">
+            <input
+              type={showConfirmPassword ? "text" : "password"}
+              {...register("confirmPassword")}
+              className="appearance-none block w-full px-3 py-2 pr-10 border border-slate-300 rounded-md shadow-sm placeholder-slate-400 focus:outline-none focus:ring-blue-700 focus:border-blue-700 sm:text-sm text-slate-900 bg-white"
+            />
+            <button
+              type="button"
+              className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600"
+              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+            >
+              {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+            </button>
+            {errors.confirmPassword && <p className="mt-1 text-sm text-red-600">{errors.confirmPassword.message}</p>}
           </div>
         </div>
 

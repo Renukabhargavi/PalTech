@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import Link from "next/link";
 import { LogOut } from "lucide-react";
 
-export default function DashboardHeader() {
+export default function DashboardHeader({ userName, userEmail }: { userName?: string, userEmail?: string }) {
   const router = useRouter();
 
   const handleSignOut = async () => {
@@ -30,12 +30,19 @@ export default function DashboardHeader() {
             <Link href="/my-polls" className="text-sm font-medium text-gray-600 hover:text-blue-700 transition-colors">My Polls</Link>
             <Link href="/shared" className="text-sm font-medium text-gray-600 hover:text-blue-700 transition-colors">Shared with me</Link>
         </nav>
-        <button 
-          onClick={handleSignOut}
-          className="flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-red-600 transition-colors ml-auto md:ml-6"
-        >
-          <LogOut size={16} /> Sign out
-        </button>
+        <div className="flex items-center gap-4 ml-auto md:ml-6">
+          {userName && (
+            <span className="text-sm text-gray-600 hidden sm:inline-block">
+              {userName} <span className="text-gray-400">({userEmail})</span>
+            </span>
+          )}
+          <button 
+            onClick={handleSignOut}
+            className="flex items-center gap-1.5 text-sm font-medium text-gray-500 hover:text-red-600 transition-colors"
+          >
+            <LogOut size={16} /> Sign out
+          </button>
+        </div>
       </div>
     </header>
   );

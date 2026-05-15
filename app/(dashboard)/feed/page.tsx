@@ -8,11 +8,9 @@ async function getPublicFeed() {
     .collection("polls")
     .where("visibility", "==", "public")
     .where("status", "==", "open")
-    .orderBy("createdAt", "desc")
-    .limit(20)
     .get();
 
-  return snapshot.docs.map(doc => {
+  const polls = snapshot.docs.map(doc => {
     const data = doc.data();
     return {
       id: doc.id,
@@ -23,6 +21,11 @@ async function getPublicFeed() {
       createdAt: data.createdAt?.toDate(),
     };
   });
+
+  // Sort in memory to bypass Firestore Composite Index requirement
+  return polls
+    .sort((a, b) => (b.createdAt?.getTime() || 0) - (a.createdAt?.getTime() || 0))
+    .slice(0, 20);
 }
 
 export default async function FeedPage() {

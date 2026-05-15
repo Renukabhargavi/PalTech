@@ -8,10 +8,9 @@ async function getMyPolls(userId: string) {
   const snapshot = await adminDb
     .collection("polls")
     .where("creatorId", "==", userId)
-    .orderBy("createdAt", "desc")
     .get();
 
-  return snapshot.docs.map(doc => {
+  const polls = snapshot.docs.map(doc => {
     const data = doc.data();
     return {
       id: doc.id,
@@ -24,6 +23,9 @@ async function getMyPolls(userId: string) {
       endAt: data.endAt?.toDate() || null,
     };
   });
+  
+  // Sort in memory to bypass Firestore Composite Index requirement
+  return polls.sort((a, b) => (b.createdAt?.getTime() || 0) - (a.createdAt?.getTime() || 0));
 }
 
 export default async function MyPollsPage() {

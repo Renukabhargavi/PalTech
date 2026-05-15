@@ -3,14 +3,25 @@ import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
 import { Users, Clock, Vote } from "lucide-react";
 
-async function getPublicFeed(page: number) {
+async function getPublicFeed(cursorParam?: string) {
   const pageSize = 20;
   
-  const snapshot = await adminDb
+  let query = adminDb
     .collection("polls")
     .where("visibility", "==", "public")
     .where("status", "==", "open")
-    .get();
+    .orderBy("createdAt", "desc")
+    .limit(pageSize);
+
+  if (cursorParam) {
+    // cursorParam is the poll document ID to start after
+    const cursorDoc = await adminDb.collection("polls").doc(cursorParam).get();
+    if (cursorDoc.exists) {
+      query = query.startAfter(cursorDoc);
+    }
+  }
+
+  const snapshot = await query.get();
 
   const polls = snapshot.docs.map(doc => {
     const data = doc.data();
@@ -24,28 +35,24 @@ async function getPublicFeed(page: number) {
     };
   });
 
-  // Sort in memory and paginate based on ?page= URL param
-  const sorted = polls.sort((a, b) => (b.createdAt?.getTime() || 0) - (a.createdAt?.getTime() || 0));
-  const totalItems = sorted.length;
-  const paginated = sorted.slice((page - 1) * pageSize, page * pageSize);
+  const nextCursor = snapshot.docs.length === pageSize ? snapshot.docs[snapshot.docs.length - 1].id : null;
   
   return {
-    polls: paginated,
-    totalPages: Math.ceil(totalItems / pageSize),
-    currentPage: page
+    polls,
+    nextCursor
   };
 }
 
-export default async function FeedPage({ searchParams }: { searchParams: { page?: string } }) {
-  const page = parseInt(searchParams.page || "1", 10) || 1;
+export default async function FeedPage({ searchParams }: { searchParams: Promise<{ cursor?: string }> }) {
+  const { cursor } = await searchParams;
   let data;
   try {
-    data = await getPublicFeed(page);
+    data = await getPublicFeed(cursor);
   } catch (error) {
-    return <div>Error loading feed. We are looking into it!</div>;
+    return <div>Error loading feed. We are looking into it! Make sure Firestore composite indexes are deployed.</div>;
   }
 
-  const { polls, totalPages, currentPage } = data;
+  const { polls, nextCursor } = data;
 
   return (
     <div className="space-y-6">
@@ -95,20 +102,13 @@ export default async function FeedPage({ searchParams }: { searchParams: { page?
         </div>
       )}
       
-      {totalPages > 1 && (
+      {nextCursor && (
         <div className="flex justify-center items-center space-x-4 pt-4">
           <Link 
-            href={`/feed?page=${Math.max(1, currentPage - 1)}`}
-            className={`px-4 py-2 border rounded-md text-sm font-medium ${currentPage === 1 ? 'pointer-events-none opacity-50 bg-gray-50 text-gray-400' : 'bg-white text-gray-700 hover:bg-gray-50'}`}
+            href={`/feed?cursor=${nextCursor}`}
+            className="px-6 py-3 border border-gray-200 rounded-md text-sm font-medium bg-white text-gray-700 hover:bg-gray-50 shadow-sm transition-colors"
           >
-            Previous
-          </Link>
-          <span className="text-sm text-gray-600">Page {currentPage} of {totalPages}</span>
-          <Link 
-            href={`/feed?page=${Math.min(totalPages, currentPage + 1)}`}
-            className={`px-4 py-2 border rounded-md text-sm font-medium ${currentPage === totalPages ? 'pointer-events-none opacity-50 bg-gray-50 text-gray-400' : 'bg-white text-gray-700 hover:bg-gray-50'}`}
-          >
-            Next
+            Load Next Page
           </Link>
         </div>
       )}

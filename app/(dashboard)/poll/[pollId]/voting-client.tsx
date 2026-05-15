@@ -143,8 +143,8 @@ export default function VotingClientUI({ poll: initialPoll, initialMyVote, userI
       {canSeeResults && poll.type === "single" && chartData.length > 0 && (
         <div className="mt-8 pt-8 border-t border-gray-100">
           <h3 className="text-lg font-medium text-gray-900 mb-4 text-center">Results Distribution</h3>
-          <div className="h-64 w-full">
-            <ResponsiveContainer width="100%" height="100%">
+          <div className="w-full min-h-[300px]">
+            <ResponsiveContainer width="100%" height={300}>
               <PieChart>
                 <Pie
                   data={chartData}
@@ -174,8 +174,8 @@ export default function VotingClientUI({ poll: initialPoll, initialMyVote, userI
       {canSeeResults && poll.type === "multiple" && chartData.length > 0 && (
         <div className="mt-8 pt-8 border-t border-gray-100">
           <h3 className="text-lg font-medium text-gray-900 mb-4 text-center">Results Distribution</h3>
-          <div className="h-64 w-full">
-            <ResponsiveContainer width="100%" height="100%">
+          <div className="w-full min-h-[300px]">
+            <ResponsiveContainer width="100%" height={300}>
               <BarChart data={chartData} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
                 <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#6b7280', fontSize: 12 }} />

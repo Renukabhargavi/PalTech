@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f8fafc; /* light slate background */
+  --foreground: #0f172a; /* dark slate foreground */
 }
 
 @theme inline {
@@ -12,12 +12,8 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
+/* Force light mode styling since all component cards are hardcoded to white. 
+   Removes the dark mode text-color inversion issue */
 
 body {
   background: var(--background);

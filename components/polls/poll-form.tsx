@@ -53,20 +53,20 @@ export default function PollForm() {
       )}
 
       <div>
-        <label className="block text-sm font-medium mb-1">Poll Title</label>
+        <label className="block text-sm font-semibold text-gray-700 mb-1">Poll Title</label>
         <input 
           {...register("title")} 
-          className="w-full border rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none" 
+          className="w-full border border-gray-300 rounded-md px-4 py-2 text-sm text-gray-900 focus:ring-2 focus:ring-blue-500 outline-none bg-white shadow-sm" 
           placeholder="What is your favorite..."
         />
         {errors.title && <p className="text-red-500 text-xs mt-1">{errors.title.message}</p>}
       </div>
 
       <div>
-        <label className="block text-sm font-medium mb-1">Description (Optional)</label>
+        <label className="block text-sm font-semibold text-gray-700 mb-1">Description (Optional)</label>
         <textarea 
           {...register("description")} 
-          className="w-full border rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none h-20"
+          className="w-full border border-gray-300 rounded-md px-4 py-2 text-sm text-gray-900 focus:ring-2 focus:ring-blue-500 outline-none h-20 bg-white shadow-sm resize-none"
           placeholder="Add more context..."
         />
         {errors.description && <p className="text-red-500 text-xs mt-1">{errors.description.message}</p>}
@@ -74,10 +74,10 @@ export default function PollForm() {
 
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium mb-1">Poll Type</label>
+          <label className="block text-sm font-semibold text-gray-700 mb-1">Poll Type</label>
           <select 
             {...register("type")} 
-            className="w-full border rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+            className="w-full border border-gray-300 rounded-md px-4 py-2 text-sm text-gray-900 focus:ring-2 focus:ring-blue-500 outline-none bg-white shadow-sm"
           >
             <option value="single">Single Choice (Radio)</option>
             <option value="multi">Multiple Choice (Checkboxes)</option>
@@ -85,10 +85,10 @@ export default function PollForm() {
         </div>
         
         <div>
-          <label className="block text-sm font-medium mb-1">Visibility</label>
+          <label className="block text-sm font-semibold text-gray-700 mb-1">Visibility</label>
           <select 
             {...register("visibility")} 
-            className="w-full border rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+            className="w-full border border-gray-300 rounded-md px-4 py-2 text-sm text-gray-900 focus:ring-2 focus:ring-blue-500 outline-none bg-white shadow-sm"
           >
             <option value="public">Public (Anyone with link)</option>
             <option value="private">Private (Invite only)</option>
@@ -97,24 +97,24 @@ export default function PollForm() {
       </div>
 
       <div>
-        <label className="block text-sm font-medium mb-1">Results Visibility</label>
+        <label className="block text-sm font-semibold text-gray-700 mb-1">Results Visibility</label>
         <select 
           {...register("resultsVisibility")} 
-          className="w-full border rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+          className="w-full border border-gray-300 rounded-md px-4 py-2 text-sm text-gray-900 focus:ring-2 focus:ring-blue-500 outline-none bg-white shadow-sm"
         >
           <option value="always">Always show results after vote</option>
-          <option value="after_voting">Only show after poll is closed</option>
+          <option value="after_voting">Only show after poll is closed / you vote</option>
         </select>
       </div>
 
       <div>
-        <label className="block text-sm font-medium mb-2">Options</label>
+        <label className="block text-sm font-semibold text-gray-700 mb-2">Options</label>
         {fields.map((field, index) => (
-          <div key={field.id} className="flex gap-2 mb-2 items-start">
+          <div key={field.id} className="flex gap-2 mb-3 items-start">
             <div className="flex-1">
               <input
                 {...register(`options.${index}.label` as const)}
-                className="w-full border rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-gray-50"
+                className="w-full border border-gray-300 rounded-md px-4 py-2 text-sm text-gray-900 focus:ring-2 focus:ring-blue-500 outline-none bg-white shadow-sm"
                 placeholder={`Option ${index + 1}`}
               />
               {errors.options?.[index]?.label && (

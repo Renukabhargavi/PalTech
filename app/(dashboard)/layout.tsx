@@ -20,20 +20,20 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col">
-      <header className="bg-white dark:bg-gray-800 shadow-sm">
+    <div className="min-h-screen bg-slate-50 flex flex-col font-sans">
+      <header className="bg-white shadow-sm border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <div className="flex items-center gap-6">
-            <h1 className="text-xl font-bold tracking-tight text-blue-600 dark:text-blue-400">Pollaris</h1>
-            <nav className="hidden md:flex gap-4">
-               <Link href="/feed" className="text-sm font-medium text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white">Public Feed</Link>
-               <Link href="/my-polls" className="text-sm font-medium text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white">My Polls</Link>
-               <Link href="/shared" className="text-sm font-medium text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white">Shared with me</Link>
+            <h1 className="text-xl font-extrabold tracking-tight text-blue-600">Pollaris</h1>
+            <nav className="hidden md:flex gap-6 border-l border-gray-200 pl-6">
+               <Link href="/feed" className="text-sm font-medium text-gray-600 hover:text-blue-600 transition-colors">Public Feed</Link>
+               <Link href="/my-polls" className="text-sm font-medium text-gray-600 hover:text-blue-600 transition-colors">My Polls</Link>
+               <Link href="/shared" className="text-sm font-medium text-gray-600 hover:text-blue-600 transition-colors">Shared with me</Link>
             </nav>
           </div>
           <button 
             onClick={handleSignOut}
-            className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
+            className="flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-red-600 transition-colors"
           >
             <LogOut size={16} /> Sign out
           </button>

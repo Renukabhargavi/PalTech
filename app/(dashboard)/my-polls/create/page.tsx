@@ -1,6 +1,9 @@
 import PollForm from "@/components/polls/poll-form";
+import { getRecentPollTemplates } from "@/lib/actions/poll.actions";
 
-export default function CreatePollPage() {
+export default async function CreatePollPage() {
+  const recentPolls = await getRecentPollTemplates(6);
+
   return (
     <div className="max-w-2xl mx-auto space-y-6">
       <div>
@@ -9,7 +12,7 @@ export default function CreatePollPage() {
       </div>
 
       <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
-        <PollForm />
+        <PollForm recentPolls={recentPolls} />
       </div>
     </div>
   );

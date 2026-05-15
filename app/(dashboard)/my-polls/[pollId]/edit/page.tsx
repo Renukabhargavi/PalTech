@@ -6,6 +6,8 @@ import PollManagementActions from "./management-actions";
 import InviteManager from "./invite-manager";
 import ShareLink from "@/components/polls/share-link";
 import { getInvites } from "@/lib/actions/invite.actions";
+import PollForm from "@/components/polls/poll-form";
+import { getRecentPollTemplates } from "@/lib/actions/poll.actions";
 
 async function getPoll(pollId: string) {
   const pollDoc = await adminDb.collection("polls").doc(pollId).get();
@@ -39,11 +41,38 @@ export default async function PollManagementPage({ params }: { params: Promise<{
     invites = await getInvites(poll.id);
   }
 
+  const recentPolls = await getRecentPollTemplates(6, poll.id);
+
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       <div className="flex items-center text-sm font-medium text-blue-600 hover:text-blue-800 mb-6">
         <Link href="/my-polls">← Back to My Polls</Link>
       </div>
+
+      {poll.status === "draft" && (
+        <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+          <div className="mb-5">
+            <h2 className="text-xl font-bold text-gray-900">Edit Draft</h2>
+            <p className="text-sm text-gray-500 mt-1">
+              Update this draft, or load one of your recent polls as a template and save it back to this draft.
+            </p>
+          </div>
+          <PollForm
+            draftPollId={poll.id}
+            recentPolls={recentPolls}
+            initialData={{
+              title: poll.title,
+              description: poll.description || "",
+              type: poll.type,
+              visibility: poll.visibility,
+              resultsVisibility: poll.resultsVisibility,
+              endAt: poll.endAt || "",
+              options: [...poll.options].sort((a: any, b: any) => a.order - b.order).map((opt: any) => ({ label: opt.label })),
+              allowedEmails: poll.allowedEmails || [],
+            }}
+          />
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className={poll.visibility === "private" ? "lg:col-span-2" : "lg:col-span-3"}>

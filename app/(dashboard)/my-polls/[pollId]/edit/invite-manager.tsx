@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { inviteUserByEmail, revokeInvite } from "@/lib/actions/invite.actions";
 import { useRouter } from "next/navigation";
+import { format } from "date-fns";
 
 export default function InviteManager({ pollId, existingInvites = [] }: { pollId: string, existingInvites?: any[] }) {
   const router = useRouter();
@@ -99,6 +100,10 @@ export default function InviteManager({ pollId, existingInvites = [] }: { pollId
                 <div>
                   <div className="font-medium text-sm text-gray-900">{invite.userName || "Unknown"}</div>
                   <div className="text-xs text-gray-500">{invite.userEmail}</div>
+                  <div className="text-[11px] text-gray-400 mt-1">
+                    Invited {invite.invitedAt ? format(new Date(invite.invitedAt), "PPP p") : "recently"}
+                    {invite.invitedByName ? ` by ${invite.invitedByName}` : ""}
+                  </div>
                 </div>
                 <button 
                   onClick={() => handleRevoke(invite.id)}

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { castVote } from "@/lib/actions/vote.actions";
+import { castVote, withdrawVote } from "@/lib/actions/vote.actions";
 import { useRouter } from "next/navigation";
 import { CheckCircle2 } from "lucide-react";
 import { doc, onSnapshot } from "firebase/firestore";
@@ -76,6 +76,21 @@ export default function VotingClientUI({ poll: initialPoll, initialMyVote, userI
       router.refresh(); 
     } catch (e: any) {
       setError(e.message || "Failed to vote");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleWithdrawVote = async () => {
+    setIsSubmitting(true);
+    setError(null);
+    try {
+      await withdrawVote(poll.id);
+      setCurrentVote(null);
+      setSelected([]);
+      router.refresh();
+    } catch (e: any) {
+      setError(e.message || "Failed to withdraw vote");
     } finally {
       setIsSubmitting(false);
     }
@@ -175,6 +190,9 @@ export default function VotingClientUI({ poll: initialPoll, initialMyVote, userI
       {canSeeResults && poll.type === "multi" && chartData.length > 0 && (
         <div className="mt-8 pt-8 border-t border-gray-100">
           <h3 className="text-lg font-medium text-gray-900 mb-4 text-center">Results Distribution</h3>
+          <p className="text-sm text-gray-500 text-center mb-4">
+            Multi-choice percentages are calculated against total respondents, so they may add up to more than 100%.
+          </p>
           <div className="w-full min-h-[300px]">
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={chartData} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}>
@@ -211,13 +229,24 @@ export default function VotingClientUI({ poll: initialPoll, initialMyVote, userI
         </div>
 
         {!isClosed && (
-          <button
-            onClick={handleSubmit}
-            disabled={isSubmitting || selected.length === 0 || (hasVoted && [...(currentVote || [])].sort().join(',') === [...selected].sort().join(','))}
-            className="bg-blue-600 text-white px-6 py-2.5 rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {isSubmitting ? "Submitting..." : hasVoted ? "Update Vote" : "Cast Vote"}
-          </button>
+          <div className="flex items-center gap-3">
+            {hasVoted && (
+              <button
+                onClick={handleWithdrawVote}
+                disabled={isSubmitting}
+                className="bg-white text-gray-700 border border-gray-300 px-4 py-2.5 rounded-lg font-medium hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Withdraw Vote
+              </button>
+            )}
+            <button
+              onClick={handleSubmit}
+              disabled={isSubmitting || selected.length === 0 || (hasVoted && [...(currentVote || [])].sort().join(',') === [...selected].sort().join(','))}
+              className="bg-blue-600 text-white px-6 py-2.5 rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isSubmitting ? "Submitting..." : hasVoted ? "Update Vote" : "Cast Vote"}
+            </button>
+          </div>
         )}
       </div>
     </div>

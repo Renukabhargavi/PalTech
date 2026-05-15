@@ -4,13 +4,14 @@ import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
 import { Users, Clock, Mail } from "lucide-react";
 
-async function getSharedPolls(userId: string) {
+async function getSharedPolls(userId: string, page: number) {
+  const pageSize = 20;
   const snapshot = await adminDb
     .collection("polls")
     .where("inviteeIds", "array-contains", userId)
     .get();
 
-  const polls = snapshot.docs.map(doc => {
+  const polls = snapshot.docs.map((doc) => {
     const data = doc.data();
     return {
       id: doc.id,
@@ -22,12 +23,24 @@ async function getSharedPolls(userId: string) {
       status: data.status,
     };
   });
-  
-  // Sort in memory to bypass Firestore Composite Index requirement
-  return polls.sort((a, b) => (b.createdAt?.getTime() || 0) - (a.createdAt?.getTime() || 0));
+
+  const visible = polls
+    .filter((poll) => poll.status === "open" || poll.status === "closed")
+    .sort((a, b) => (b.createdAt?.getTime() || 0) - (a.createdAt?.getTime() || 0));
+
+  const totalPages = Math.max(1, Math.ceil(visible.length / pageSize));
+  const safePage = Math.min(Math.max(page, 1), totalPages);
+  const start = (safePage - 1) * pageSize;
+
+  return {
+    polls: visible.slice(start, start + pageSize),
+    currentPage: safePage,
+    totalPages,
+    totalCount: visible.length,
+  };
 }
 
-export default async function SharedPage() {
+export default async function SharedPage({ searchParams }: { searchParams: Promise<{ page?: string }> }) {
   let userId: string;
   try {
     userId = await getAuthUserId();
@@ -35,13 +48,16 @@ export default async function SharedPage() {
     return <div>Unauthorized. Please log in again.</div>;
   }
 
-  const polls = await getSharedPolls(userId);
+  const params = await searchParams;
+  const page = Number(params.page || "1");
+  const { polls, currentPage, totalPages, totalCount } = await getSharedPolls(userId, page);
 
   return (
     <div className="space-y-6">
       <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
         <h1 className="text-2xl font-bold tracking-tight text-gray-900">Shared with me</h1>
         <p className="text-gray-500">Private polls you have been invited to participate in.</p>
+        <p className="text-sm text-gray-400 mt-1">{totalCount} visible invite{totalCount === 1 ? "" : "s"}</p>
       </div>
 
       {polls.length === 0 ? (
@@ -51,47 +67,77 @@ export default async function SharedPage() {
           <p className="text-gray-500 mt-1 mb-6">When someone invites you to a private poll, it will appear here.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {polls.map((poll) => (
-            <Link 
-              key={poll.id} 
-              href={`/poll/${poll.id}`}
-              className="bg-white group overflow-hidden border border-gray-200 rounded-xl hover:shadow-md transition duration-200 flex flex-col"
-            >
-              <div className="p-5 flex-1 relative">
-                <div className="mb-2">
-                  <span className={`px-2 py-0.5 text-xs font-medium rounded-full ${
-                    poll.status === 'open' ? "bg-green-100 text-green-800" :
-                    poll.status === 'closed' ? "bg-red-100 text-red-800" :
-                    "bg-gray-100 text-gray-800"
-                  }`}>
-                    {poll.status.toUpperCase()}
-                  </span>
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {polls.map((poll) => (
+              <Link
+                key={poll.id}
+                href={`/poll/${poll.id}`}
+                className="bg-white group overflow-hidden border border-gray-200 rounded-xl hover:shadow-md transition duration-200 flex flex-col"
+              >
+                <div className="p-5 flex-1 relative">
+                  <div className="mb-2">
+                    <span className={`px-2 py-0.5 text-xs font-medium rounded-full ${
+                      poll.status === "open" ? "bg-green-100 text-green-800" :
+                      poll.status === "closed" ? "bg-red-100 text-red-800" :
+                      "bg-gray-100 text-gray-800"
+                    }`}>
+                      {poll.status.toUpperCase()}
+                    </span>
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900 leading-tight mb-2 group-hover:text-blue-600 transition-colors line-clamp-2">
+                    {poll.title}
+                  </h3>
+                  {poll.description && (
+                    <p className="text-sm text-gray-500 mb-4 line-clamp-2">
+                      {poll.description}
+                    </p>
+                  )}
+                  <div className="text-xs text-gray-400 mt-2 font-medium">Invited by {poll.creatorName}</div>
                 </div>
-                <h3 className="text-lg font-semibold text-gray-900 leading-tight mb-2 group-hover:text-blue-600 transition-colors line-clamp-2">
-                  {poll.title}
-                </h3>
-                {poll.description && (
-                  <p className="text-sm text-gray-500 mb-4 line-clamp-2">
-                    {poll.description}
-                  </p>
-                )}
-                <div className="text-xs text-gray-400 mt-2 font-medium">Invited by {poll.creatorName}</div>
-              </div>
-              
-              <div className="px-5 py-3 bg-gray-50 border-t border-gray-100 flex items-center justify-between mt-auto">
-                <div className="flex items-center text-xs text-gray-500 font-medium">
-                  <Users size={14} className="mr-1.5" /> 
-                  <span className="text-gray-700 font-semibold mr-1">{poll.totalRespondents}</span> votes
+
+                <div className="px-5 py-3 bg-gray-50 border-t border-gray-100 flex items-center justify-between mt-auto">
+                  <div className="flex items-center text-xs text-gray-500 font-medium">
+                    <Users size={14} className="mr-1.5" />
+                    <span className="text-gray-700 font-semibold mr-1">{poll.totalRespondents}</span> votes
+                  </div>
+                  <div className="flex items-center text-xs text-gray-400">
+                    <Clock size={12} className="mr-1" />
+                    {poll.createdAt && formatDistanceToNow(poll.createdAt, { addSuffix: true })}
+                  </div>
                 </div>
-                <div className="flex items-center text-xs text-gray-400">
-                  <Clock size={12} className="mr-1"/>
-                  {poll.createdAt && formatDistanceToNow(poll.createdAt, { addSuffix: true })}
-                </div>
-              </div>
-            </Link>
-          ))}
-        </div>
+              </Link>
+            ))}
+          </div>
+
+          {totalPages > 1 && (
+            <div className="flex justify-center items-center gap-3 pt-4">
+              <Link
+                href={`/shared?page=${Math.max(1, currentPage - 1)}`}
+                className={`px-4 py-2 rounded-md border text-sm ${
+                  currentPage === 1
+                    ? "pointer-events-none border-gray-100 text-gray-300"
+                    : "border-gray-200 text-gray-700 bg-white hover:bg-gray-50"
+                }`}
+              >
+                Previous
+              </Link>
+              <span className="text-sm text-gray-500">
+                Page {currentPage} of {totalPages}
+              </span>
+              <Link
+                href={`/shared?page=${Math.min(totalPages, currentPage + 1)}`}
+                className={`px-4 py-2 rounded-md border text-sm ${
+                  currentPage === totalPages
+                    ? "pointer-events-none border-gray-100 text-gray-300"
+                    : "border-gray-200 text-gray-700 bg-white hover:bg-gray-50"
+                }`}
+              >
+                Next
+              </Link>
+            </div>
+          )}
+        </>
       )}
     </div>
   );

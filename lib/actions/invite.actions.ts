@@ -32,12 +32,16 @@ export async function inviteUserByEmail(pollId: string, email: string) {
     throw new Error("User is already invited");
   }
 
+  const creatorDoc = await adminDb.collection("users").doc(userId).get();
+  const creatorName = creatorDoc.data()?.name || "Poll creator";
+
   const batch = adminDb.batch();
   batch.set(inviteRef, {
     userId: invitedUserId,
     userEmail: invitedUser.data()?.email,
     userName: invitedUser.data()?.name,
     invitedBy: userId,
+    invitedByName: creatorName,
     invitedAt: FieldValue.serverTimestamp()
   });
   

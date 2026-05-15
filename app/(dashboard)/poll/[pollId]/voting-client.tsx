@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { CheckCircle2 } from "lucide-react";
 import { doc, onSnapshot } from "firebase/firestore";
 import { db } from "@/lib/firebase/client";
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from "recharts";
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend, BarChart, Bar, XAxis, YAxis, CartesianGrid } from "recharts";
 
 import ExportCsvButton from "@/components/polls/export-csv-button";
 
@@ -166,6 +166,31 @@ export default function VotingClientUI({ poll: initialPoll, initialMyVote, userI
                 />
                 <Legend />
               </PieChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      )}
+
+      {canSeeResults && poll.type === "multiple" && chartData.length > 0 && (
+        <div className="mt-8 pt-8 border-t border-gray-100">
+          <h3 className="text-lg font-medium text-gray-900 mb-4 text-center">Results Distribution</h3>
+          <div className="h-64 w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={chartData} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
+                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#6b7280', fontSize: 12 }} />
+                <YAxis allowDecimals={false} axisLine={false} tickLine={false} tick={{ fill: '#6b7280', fontSize: 12 }} />
+                <Tooltip 
+                  cursor={{ fill: '#f3f4f6' }}
+                  formatter={(value: any) => [`${value} votes`, 'Count']}
+                  contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                />
+                <Bar dataKey="value" radius={[4, 4, 0, 0]} maxBarSize={60}>
+                  {chartData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Bar>
+              </BarChart>
             </ResponsiveContainer>
           </div>
         </div>

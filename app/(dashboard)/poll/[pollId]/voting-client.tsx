@@ -1,24 +1,52 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { castVote } from "@/lib/actions/vote.actions";
 import { useRouter } from "next/navigation";
 import { CheckCircle2 } from "lucide-react";
+import { doc, onSnapshot } from "firebase/firestore";
+import { db } from "@/lib/firebase/client";
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from "recharts";
 
 import ExportCsvButton from "@/components/polls/export-csv-button";
 
-export default function VotingClientUI({ poll, initialMyVote, userId }: { poll: any, initialMyVote: string[] | null, userId: string }) {
+const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#6366f1', '#ec4899', '#14b8a6'];
+
+export default function VotingClientUI({ poll: initialPoll, initialMyVote, userId }: { poll: any, initialMyVote: string[] | null, userId: string }) {
   const router = useRouter();
+  
+  // Realtime state
+  const [poll, setPoll] = useState(initialPoll);
+
   const [selected, setSelected] = useState<string[]>(initialMyVote || []);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Realtime updates
+  useEffect(() => {
+    if (!initialPoll?.id) return;
+    const unsubscribe = onSnapshot(doc(db, "polls", initialPoll.id), (doc) => {
+      if (doc.exists()) {
+        const data = doc.data();
+        setPoll((prev: any) => ({
+          ...prev,
+          ...data,
+          options: data.options || prev.options,
+          totalRespondents: data.totalRespondents || 0,
+          status: data.status || prev.status,
+          endAt: data.endAt?.toDate?.()?.toISOString() || prev.endAt
+        }));
+      }
+    }, (err) => {
+      console.error("Failed to listen for poll updates:", err);
+    });
+
+    return () => unsubscribe();
+  }, [initialPoll?.id]);
+
   const isClosed = poll.status === "closed";
   const hasVoted = initialMyVote !== null;
   
-  // FR34: "Always visible" -> anyone can see. 
-  // FR35: "Visible after voting" -> only viewers who voted (or creator) can see while open.
-  // FR36: Once Closed, results are visible to all viewers.
   const canSeeResults = 
     isClosed || 
     poll.resultsVisibility === "always" ||
@@ -44,7 +72,7 @@ export default function VotingClientUI({ poll, initialMyVote, userId }: { poll: 
     setError(null);
     try {
       await castVote(poll.id, selected);
-      router.refresh(); // Refresh server props
+      router.refresh(); 
     } catch (e: any) {
       setError(e.message || "Failed to vote");
     } finally {
@@ -52,8 +80,13 @@ export default function VotingClientUI({ poll, initialMyVote, userId }: { poll: 
     }
   };
 
-  // Sort options by order
-  const options = [...poll.options].sort((a, b) => a.order - b.order);
+  const options = [...poll.options].sort((a: any, b: any) => a.order - b.order);
+
+  // Chart Data preparation
+  const chartData = options.map((opt: any) => ({
+    name: opt.label,
+    value: opt.voteCount,
+  })).filter(opt => opt.value > 0);
 
   return (
     <div className="space-y-6">
@@ -74,7 +107,7 @@ export default function VotingClientUI({ poll, initialMyVote, userId }: { poll: 
                   : "border-gray-200 hover:border-blue-300 hover:bg-gray-50 bg-white"
               } ${isClosed ? "cursor-default opacity-90 hover:border-gray-200 hover:bg-white" : ""}`}
             >
-              {canSeeResults && (
+              {canSeeResults && poll.type === "multiple" && (
                 <div 
                   className="absolute left-0 top-0 bottom-0 bg-blue-100 opacity-50 z-0 transition-all duration-1000 ease-out" 
                   style={{ width: `${percentage}%` }} 
@@ -106,6 +139,37 @@ export default function VotingClientUI({ poll, initialMyVote, userId }: { poll: 
           );
         })}
       </div>
+
+      {canSeeResults && poll.type === "single" && chartData.length > 0 && (
+        <div className="mt-8 pt-8 border-t border-gray-100">
+          <h3 className="text-lg font-medium text-gray-900 mb-4 text-center">Results Distribution</h3>
+          <div className="h-64 w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={chartData}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={60}
+                  outerRadius={80}
+                  paddingAngle={5}
+                  dataKey="value"
+                  animationDuration={1000}
+                >
+                  {chartData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip 
+                  formatter={(value: any) => [`${value} votes`, 'Count']}
+                  contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                />
+                <Legend />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      )}
 
       <div className="pt-6 border-t border-gray-100 flex justify-between items-center flex-wrap gap-4">
         <div className="text-gray-500 text-sm flex items-center gap-4">

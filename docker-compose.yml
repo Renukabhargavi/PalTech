@@ -1,0 +1,13 @@
+version: '3.8'
+
+services:
+  pollaris:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      # You MUST provide a .env.local file or define environments here
+    env_file:
+      - .env.local
+    restart: always

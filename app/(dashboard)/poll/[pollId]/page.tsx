@@ -29,9 +29,12 @@ async function getPollAndVote(pollId: string) {
     return { status: "forbidden" };
   }
 
+  // Strip sensitive PII before sending to the client (Fixes FR31/PII Leak)
+  const { inviteeIds, ...safePollData } = pollData;
+
   const poll = {
     id: pollDoc.id,
-    ...pollData,
+    ...safePollData,
     createdAt: pollData.createdAt?.toDate().toISOString(),
     updatedAt: pollData.updatedAt?.toDate().toISOString(),
     endAt: pollData.endAt?.toDate().toISOString() || null,
